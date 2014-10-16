@@ -1,0 +1,107 @@
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+.scrubs-scrubber {
+  position: relative;
+  max-width: 80%;
+  margin: 0 auto;
+  display: block;
+}
+
+.scrubs-scrubber .scrubs-images {
+  position: relative;
+  overflow: hidden;
+  display: block;
+  pointer-events: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.scrubs-scrubber .scrubs-image-placeholder {
+  display: block;
+  opacity: 0;
+}
+
+.scrubs-scrubber .scrubs-image-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  display: block;
+  overflow: hidden;
+}
+
+.scrubs-scrubber .scrubs-image {
+  display: block;
+  position: relative;
+}
+
+.scrubs-scrubber .scrubs-controls {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  display: block;
+  width: 100%;
+}
+
+.scrubs-scrubber .scrubs-controls-bar {
+  height: 100%;
+  width: 4px;
+  background: white;
+  display: block;
+  position: absolute;
+  top: 0;
+  right: 0;
+  -webkit-box-shadow: 0 0 0.25em rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 0.25em rgba(0, 0, 0, 0.2);
+}
+
+.scrubs-scrubber .scrubs-controls-handle {
+  position: absolute;
+  top: 50%;
+  right: 2px;
+  height: 2.5em;
+  width: 2.5em;
+  margin-top: -1.25em;
+  margin-right: -1.25em;
+  display: block;
+  border-radius: 100%;
+  background: #e6e6e6;
+  border: 0.25em solid white;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  -webkit-box-shadow: 0 0 0.25em rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 0.25em rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+.scrubs-scrubber .scrubs-controls-handle:after {
+  background-color: rgba(0, 0, 0, 0);
+  background-image: url("../images/embed.svg");
+  background-position: center center;
+  background-repeat: no-repeat;
+  -webkit-background-size: contain;
+  background-size: contain;
+  content: "";
+  display: block;
+  height: 1.5em;
+  left: 50%;
+  margin-left: -0.75em;
+  margin-top: -0.75em;
+  position: absolute;
+  top: 50%;
+  width: 1.5em;
+  opacity: 0.5;
+}
+
+.scrubs-scrubber[data-transition="true"] .trans {
+  -webkit-transition: -webkit-transform 300ms ease-in-out;
+  transition: transform 300ms ease-in-out;
+}
