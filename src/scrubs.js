@@ -15,7 +15,7 @@
 	// Create the defaults once
 	var pluginName = "Scrubs",
 		defaults = {
-			propertyName: "percent"
+			vertical: false
 		};
 
 	// The actual plugin constructor
@@ -27,18 +27,33 @@
 		this._defaults = defaults;
 		this._name = pluginName;
 
-		this.init();
+		this._init();
 	}
 
 	$.extend(Plugin.prototype, {
+		
 
-		init: function() {
+		_vars: {
+			prefix: '',
+			transforms: false,
+			transforms3d: false,
+		},
+
+		_init: function() {
 
 			var
 				$this = $(this.element),
 				imagesArray = $this.find('img').toArray(),
 				beforeImage = imagesArray[0],
 				afterImage = imagesArray[1];
+
+			this._vars.options = this.options;
+
+			
+			this._vars.prefix = this._checkWhichTransform();
+
+			// Set our transform supports
+			this._checkTransformSupport();
 
 			// Create all the DOM around the initial images
 			this._createStructure(this.element, beforeImage, afterImage);
@@ -57,11 +72,13 @@
 		 */
 		_bind: function(el){
 			var
-				$this = $(el);
+				$this = $(el),
+				options = this.options;
+			console.log(options);
 
-			$this.on('mousedown mouseup touchstart touchend', this._transToggle);
-			$this.on('mousedown mouseup touchstart touchend touchcancel', this._changeBinding);
-			$this.on('mousedown touchstart', this._calcPercent);
+			$this.on('mousedown mouseup touchstart touchend', {options: options}, this._transToggle);
+			$this.on('mousedown mouseup touchstart touchend touchcancel', {options: options}, this._changeBinding);
+			$this.on('mousedown touchstart', {options: options}, this._calcPercent);
 		},
 
 		/**
@@ -80,6 +97,11 @@
 
 			// Add scrubs class so that we can add our style hooks
 			$this.addClass('scrubs-scrubber');
+
+			if (this.options.vertical) {
+				$this.addClass('scrubs-vertical');
+			}
+
 			// Add our data attributes
 			$this.attr('data-transition',true).data('plugin_Scrubs.percent',50);
 
@@ -111,15 +133,29 @@
 		_calcPercent: function(event){
 			var
 				$this = $(this),
+				options = event.data.options,
 				inputX = ( event.type === 'mousedown' || event.type === 'mousemove' ) ? event.pageX : event.originalEvent.touches[0].pageX,
+				inputY = ( event.type === 'mousedown' || event.type === 'mousemove' ) ? event.pageY : event.originalEvent.touches[0].pageY,
 				offsetX = $this.offset().left,
+				offsetY = $this.offset().top,
 				totalWidth = $this.width(),
+				totalHeight = $this.height(),
 				positionX = inputX - offsetX,
-				percentX = parseInt( (positionX/totalWidth)*100 );
+				positionY = inputY - offsetY,
+				percentX = parseInt( (positionX/totalWidth)*100 ),
+				percentY = parseInt( (positionY/totalHeight)*100 );
 
 			event.preventDefault();
-			$this.data('plugin_Scrubs.percent', percentX);
-			Plugin.prototype._scrubTo($this[0], percentX);
+
+
+			if (options.vertical){
+				$this.data('plugin_Scrubs.percent', percentY);
+				Plugin.prototype._scrubTo($this[0], percentY);
+			}
+			else {
+				$this.data('plugin_Scrubs.percent', percentX);
+				Plugin.prototype._scrubTo($this[0], percentX);
+			}
 		},
 
 		/**
@@ -141,6 +177,77 @@
 				Plugin.prototype._scrubTo($this[0]);
 			}
 		},
+		/**
+		 * _checkTransformSupport (PRIVATE)
+		 *
+		 * Replacement for Modernizr checks. Checks to see if there is any transform support in the current browser and sets some vars for us.
+		 */
+		_checkTransformSupport: function(){
+			var
+				el = document.createElement('div'),
+				matrix2d = 'matrix(1, 0, 0, 1, 1, 1)', // proper matrix response
+				matrix3d = 'matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1)', // proper matrix3d response
+				elMatrix2d,
+				elMatrix3d,
+				transforms = {
+			        'webkitTransform':'-webkit-transform',
+			        'OTransform':'-o-transform',
+			        'msTransform':'-ms-transform',
+			        'MozTransform':'-moz-transform',
+			        'transform':'transform'
+				};
+
+			// Add it to the body to get the computed style
+    		document.body.insertBefore(el, null);
+
+		    for(var t in transforms){
+		        if( el.style[t] !== undefined ){
+
+		        	// Check transforms support
+		            el.style[t] = 'translate(1px,1px)';
+		            elMatrix2d = window.getComputedStyle(el).getPropertyValue(transforms[t]);
+
+		            // Check transforms3d support
+		            el.style[t] = 'translate3d(1px,1px, 1px)';
+		            elMatrix3d = window.getComputedStyle(el).getPropertyValue(transforms[t]);
+		        }
+		    }
+		 
+		    document.body.removeChild(el);
+
+		    if (elMatrix3d !== undefined && elMatrix3d.length > 0 && elMatrix3d !== "none" && elMatrix3d === matrix3d){
+		    	this._vars.transforms = true;
+		    	this._vars.transforms3d = true;
+		    }
+		    else if (elMatrix2d !== undefined && elMatrix2d.length > 0 && elMatrix2d !== "none" && elMatrix2d === matrix2d){
+		    	this._vars.transforms = true;
+		    }
+		},
+
+		/**
+		 * _checkWhichTransform (PRIVATE)
+		 *
+		 * Checks which transform property we should be using and returns the proper one.
+		 * 
+		 * @return string Transform with prefix to use
+		 */
+		_checkWhichTransform: function(){
+			var
+				el = document.createElement('fakeelement'),
+				transforms = {
+			        'webkitTransform':'-webkit-transform',
+			        'OTransform':'-o-transform',
+			        'msTransform':'-ms-transform',
+			        'MozTransform':'-moz-transform',
+			        'transform':'transform'
+				};
+
+			for(var t in transforms){
+				if( el.style[t] !== undefined ){
+					return transforms[t];
+				}
+			}
+		},
 
 		/**
 		 * _scrubTo (PRIVATE)
@@ -159,7 +266,9 @@
 				$controls = $this.find('.scrubs-controls'),
 				isInputActive = $this.data('plugin_Scrubs.isInputActive'),
 				percent = (100 - scrollPercent) || (100 - $this.data('plugin_Scrubs.percent')),
-				isStart = isStartReset || false;
+				isStart = isStartReset || false,
+				prefix = this._vars.prefix,
+				isVertical = ( this.options.vertical );
 
 			// We've stopped scrubbing.
 			if (!isInputActive){
@@ -182,15 +291,29 @@
 			$this.data('plugin_Scrubs.percent', -(percent-100) );
 
 			// Move that scrubber
-			if (Modernizr.csstransforms3d){
-				$overlay.css({ transform: 'translate3d(-'+percent+'%, 0, 0)', webkitTransform: 'translate3d(-'+percent+'%, 0, 0)' });
-				$image.css({ transform: 'translate3d('+percent+'%, 0, 0)', webkitTransform: 'translate3d('+percent+'%, 0, 0)'});
-				$controls.css({ transform: 'translate3d(-'+percent+'%, 0, 0)', webkitTransform: 'translate3d(-'+percent+'%, 0, 0)'});
+			if (this._vars.transforms3d){
+				if (!isVertical){
+					$overlay.css(prefix, 'translate3d(-'+percent+'%,0,0)');
+					$image.css(prefix, 'translate3d('+percent+'%,0,0)');
+					$controls.css(prefix, 'translate3d(-'+percent+'%,0,0)');
+				}
+				else {
+					$overlay.css(prefix, 'translate3d(0,-'+percent+'%,0)');
+					$image.css(prefix, 'translate3d(0,'+percent+'%,0)');
+					$controls.css(prefix, 'translate3d(0,-'+percent+'%,0)');
+				}
 			}
-			else {
-				$overlay.css({ transform: 'translateX(-'+percent+'%)', webkitTransform: 'translateX(-'+percent+'%)' });
-				$image.css({ transform: 'translateX('+percent+'%)', webkitTransform: 'translateX('+percent+'%)'});
-				$controls.css({ transform: 'translateX(-'+percent+'%)', webkitTransform: 'translateX(-'+percent+'%)'});
+			else if (this._vars.transforms) {
+				if (!isVertical){
+					$overlay.css(prefix, 'translateX(-'+percent+'%)');
+					$image.css(prefix, 'translateX('+percent+'%)');
+					$controls.css(prefix, 'translateX(-'+percent+'%)');
+				}
+				else {
+					$overlay.css(prefix, 'translateY(-'+percent+'%)');
+					$image.css(prefix, 'translateY('+percent+'%)');
+					$controls.css(prefix, 'translateY(-'+percent+'%)');
+				}
 			}
 		},
 
