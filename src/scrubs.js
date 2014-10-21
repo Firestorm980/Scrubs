@@ -2,6 +2,7 @@
  * jQuery Scrubs Plugin
  * @author: Jon Christensen (Firestorm980)
  * @github: https://github.com/Firestorm980/Scrubs
+ * @version: 0.3
  *
  * Licensed under the MIT License.
  */
@@ -11,57 +12,61 @@
 // that are not closed properly.
 ;(function ( $, window, document, undefined ) {
 
-
 	// Create the defaults once
 	var pluginName = "Scrubs",
 		defaults = {
-			vertical: false,
-			startAt: 50,
-			onInit: function(){},
-			onBegin: function(){},
-			onScrub: function(){},
-			onComplete: function(){},
+			// Options
+			controls: true, // Output the default controls. Useful for making custom / alternative controls.
+			input: true, // Set if manual user controls are active. Useful for making custom / alternative controls. 
+			startAt: 50, // Number to start the scrubber on. Will also "reset" to this number.	
+			sticky: false, // Keeps the scrubber at a position instead of snapping to an end
+			vertical: false, // Sets whether the scrubber should work in Y axis
+			width: 'auto', // Sets the maximum width of the scrubber. If left to 'auto', will be responsive as big as the image. Number can't be bigger than the images being scrubbed.
+
+			// Callbacks
+			onInit: function(){}, // Callback when the scrubber is ready
+			onStart: function(){}, // Callback when a person begins scrubbing (only applies when input is true)
+			onScrub: function(){}, // Callback when a person is scrubbing (only applies when input is true)
+			onComplete: function(){}, // Callback when a person stops scrubbing (happens immediately after scrub input up, or upon calling scrubTo)
 		};
 
 	// The actual plugin constructor
 	function Plugin( element, options ) {
 		this.element = element;
-
 		this.options = $.extend( {}, defaults, options) ;
-
 		this._defaults = defaults;
 		this._name = pluginName;
-
 		this._init();
 	}
 
 	$.extend(Plugin.prototype, {
-		
 
 		_vars: {
-			prefix: '',
-			transforms: false,
-			transforms3d: false,
+			prefix: '', // Store the browser prefix for CSS transforms
+			transforms: false, // Does this browser support 2D CSS Transforms?
+			transforms3d: false, // Does this browser support 3D CSS Transforms?
 		},
 
+		/**
+		 * _init (PRIVATE)
+		 * 
+		 * Start me up!
+		 */
 		_init: function() {
-
 			var
 				$this = $(this.element),
 				imagesArray = $this.find('img').toArray(),
 				beforeImage = imagesArray[0],
 				afterImage = imagesArray[1];
 
-			this._vars.options = this.options;
-
-			
-			this._vars.prefix = this._checkWhichTransform();
-
 			// Set our transform supports
 			this._checkTransformSupport();
 
+			// Check our prefix for this browser
+			this._vars.prefix = this._checkWhichTransform();
+
 			// Create all the DOM around the initial images
-			this._createStructure(this.element, beforeImage, afterImage);
+			this._constructor(this.element, beforeImage, afterImage);
 
 			// Bind all of our handlers
 			this._bind(this.element);
@@ -73,7 +78,6 @@
 			if ( this._isFunction(this.options.onInit) ) {
 				this.options.onInit.call(this);
 			}
-
 		},
 
 		/**
@@ -86,52 +90,11 @@
 				$this = $(el),
 				options = this.options;
 
-			$this.on('mousedown mouseup touchstart touchend', {options: options}, this._transToggle);
-			$this.on('mousedown mouseup touchstart touchend touchcancel', {options: options}, this._changeBinding);
-			$this.on('mousedown touchstart', {options: options}, this._calcPercent);
-		},
-
-		/**
-		 * _createStructure (PRIVATE)
-		 * 
-		 * Makes the DOM structure that will surround this instance of the scrubber. Gets passed images from initiation.
-		 * @param  element beforeImage
-		 * @param  element afterImage
-		 */
-		_createStructure: function(el, beforeImage, afterImage){
-			var
-				$this = $(el),
-				$beforeImage = $(beforeImage),
-				$afterImage = $(afterImage),
-				$imagePlaceholder = $beforeImage.clone();
-
-			// Add scrubs class so that we can add our style hooks
-			$this.addClass('scrubs-scrubber');
-
-			if (this.options.vertical) {
-				$this.addClass('scrubs-vertical');
+			if (options.input){
+				$this.on('mousedown mouseup touchstart touchend', {options: options}, this._transToggle);
+				$this.on('mousedown mouseup touchstart touchend touchcancel', {options: options}, this._changeBinding);
+				$this.on('mousedown touchstart', {options: options}, this._calcPercent);
 			}
-
-			// Add our data attributes
-			$this.attr('data-transition',true).data('plugin_Scrubs.percent',50);
-
-			// DOM changes
-			// Scrubs images container
-			$this.append('<div class="scrubs-images"></div>');
-			// Make the contol bar
-			$this.append('<div class="scrubs-controls trans"><span id="scrubsControlsBar" class="scrubs-controls-bar"></span><span id="scrubsControlsHandle" class="scrubs-controls-handle"></span></div>');
-			
-			// Add classes & IDs
-			$imagePlaceholder.addClass('scrubs-image-placeholder');
-			$beforeImage.addClass('scrubs-image');
-			$afterImage.addClass('scrubs-overlay-image scrubs-image trans');
-
-			// Append elements
-			$this.find('.scrubs-images').append($imagePlaceholder).append($beforeImage).append($afterImage);
-
-			// Wrap images
-			$beforeImage.wrap('<div class="scrubs-image-container scrubs-image-container-before"></div>');
-			$afterImage.wrap('<div class="scrubs-overlay scrubs-image-container scrubs-image-container-after trans"></div>');
 		},
 
 		/**
@@ -155,16 +118,16 @@
 				percentX = parseInt( (positionX/totalWidth)*100 ),
 				percentY = parseInt( (positionY/totalHeight)*100 );
 
-			event.preventDefault();
+			event.preventDefault(); // Stop from doing the default action.
 
 			// Check if we're vertical. Send the appropriate calculation.
 			if (options.vertical){
-				$this.data('plugin_Scrubs.percent', percentY);
-				Plugin.prototype._scrubTo($this[0], options, percentY);
+				Plugin.prototype._setPercent($this, percentY);
+				Plugin.prototype._scrubTo($this[0], options, percentY); // Scrub this to the percent the user is on
 			}
 			else {
-				$this.data('plugin_Scrubs.percent', percentX);
-				Plugin.prototype._scrubTo($this[0], options, percentX);
+				Plugin.prototype._setPercent($this, percentX);
+				Plugin.prototype._scrubTo($this[0], options, percentX); // Scrub this to the percent the user is on
 			}
 		},
 
@@ -261,6 +224,64 @@
 		},
 
 		/**
+		 * _constructor (PRIVATE)
+		 * 
+		 * Makes the DOM structure that will surround this instance of the scrubber. Gets passed images from initiation.
+		 * @param  element beforeImage
+		 * @param  element afterImage
+		 */
+		_constructor: function(el, beforeImage, afterImage){
+			var
+				$this = $(el),
+				$beforeImage = $(beforeImage),
+				$afterImage = $(afterImage),
+				$imagePlaceholder = $beforeImage.clone(),
+				maxWidth = $beforeImage.width(),
+				optWidth = this.options.width;
+
+			// Add scrubs class so that we can add our style hooks
+			$this.addClass('scrubs-scrubber');
+
+			// Check vertical option. Add appropriate styling.
+			// Style changes direction of controls.
+			if (this.options.vertical) {
+				$this.addClass('scrubs-vertical');
+			}
+
+			// Check responsive option. Add appropriate styling.
+			if (optWidth !== 'auto' && !isNaN(optWidth) && optWidth <= maxWidth){
+				$this.css({ width: optWidth });
+			}
+			else {
+				$this.css({ maxWidth: maxWidth });
+			}
+
+			// Add our data attributes
+			$this.attr('data-transition',true);
+			this._setPercent($this, 50);
+
+			// DOM changes
+			// Scrubs images container
+			$this.append('<div class="scrubs-images"></div>');
+
+			// Make the contol bar, if we wanted one.
+			if (this.options.controls){
+				$this.append('<div class="scrubs-controls scrubs-trans"><span id="scrubsControlsBar" class="scrubs-controls-bar"></span><span id="scrubsControlsHandle" class="scrubs-controls-handle"></span></div>');
+			}
+			
+			// Add classes & IDs
+			$imagePlaceholder.addClass('scrubs-image-placeholder');
+			$beforeImage.addClass('scrubs-image');
+			$afterImage.addClass('scrubs-overlay-image scrubs-image scrubs-trans');
+
+			// Append elements
+			$this.find('.scrubs-images').append($imagePlaceholder).append($beforeImage).append($afterImage);
+
+			// Wrap images
+			$beforeImage.wrap('<div class="scrubs-image-container scrubs-image-container-before"></div>');
+			$afterImage.wrap('<div class="scrubs-overlay scrubs-image-container scrubs-image-container-after scrubs-trans"></div>');
+		},
+		/**
 		 * _isFunction
 		 *
 		 * Check to see if the object passed is a function.
@@ -276,33 +297,43 @@
 		 *
 		 * Our workhorse function. Sets the scrubber to various percents of value and moves the elements accordingly.
 		 * 
-		 * @param  {element}  	el 				Element that we're working with
-		 * @param  {object} 	options			Passing options object from / to functions
-		 * @param  {number}  	scrollPercent 	Percent we will scroll to from 0-100.
-		 * @param  {Boolean} 	isStartReset  	Used as a flag for the intial startup and reset functions
+		 * @param  {element}  	el 							Element that we're working with
+		 * @param  {object} 	options						Passing options object from / to functions
+		 * @param  {number}  	scrollPercent 				Percent we will scroll to from 0-100.
+		 * @param  {Boolean} 	isStartingNumberBoolean		Used as a flag for the intial startup and reset functions
+		 * @param  {Boolean}	isStickyBoolean				Used as a flag for the public 'scrollTo' function. Lets us set 1-time sticky scrubbing.
 		 */
-		_scrubTo: function(el, options, scrollPercent, isStartReset){
+		_scrubTo: function(el, options, scrollPercent, isStartingNumberBoolean, isStickyBoolean){
 			var
 				$this = $(el),
 				$overlay = $this.find('.scrubs-overlay'),
 				$image = $this.find('.scrubs-overlay-image'),
 				$controls = $this.find('.scrubs-controls'),
+
 				isInputActive = $this.data('plugin_Scrubs.isInputActive'),
+				isStartingNumber = isStartingNumberBoolean || false,
+				isSticky = isStickyBoolean || false,
+				isVertical = ( options.vertical ),
+
 				percent = (100 - scrollPercent) || (100 - $this.data('plugin_Scrubs.percent')),
-				isStart = isStartReset || false,
 				prefix = this._vars.prefix,
-				isVertical = ( options.vertical );
+				startingNumber = ( options.startAt > 100 || options.startAt < 0 ) ? 50 : options.startAt;
 
 			// We've stopped scrubbing.
 			if (!isInputActive){
-				if (isStart === true){
-					percent = -(options.startAt-100);
+				// If this is the starting number (used for 'reset' function)
+				if (isStartingNumber === true){
+					percent = -(startingNumber-100); // Go to the startAt number
 				}
-				else if (percent > 50){
-					percent = 100;
-				}
-				else if (percent <= 50){
-					percent = 0;
+				// Check if the scrubber is sticky or if we specified we want this scrub to be sticky
+				else if (!options.sticky && !isSticky) {
+					// Its not. Snap to edges.
+					if (percent > 50){
+						percent = 100;
+					}
+					else if (percent <= 50){
+						percent = 0;
+					}
 				}
 			}
 
@@ -311,10 +342,12 @@
 			else if ( percent > 100 ) { percent = 100; }
 
 			// Add percent to data
-			$this.data('plugin_Scrubs.percent', -(percent-100) );
+			this._setPercent($this, -(percent-100));
 
 			// Move that scrubber
+			// But first, check for 3D transform support 
 			if (this._vars.transforms3d){
+				// Check if vertical and if not, translate on X
 				if (!isVertical){
 					$overlay.css(prefix, 'translate3d(-'+percent+'%,0,0)');
 					$image.css(prefix, 'translate3d('+percent+'%,0,0)');
@@ -326,7 +359,9 @@
 					$controls.css(prefix, 'translate3d(0,-'+percent+'%,0)');
 				}
 			}
+			// Check for 2D transform support
 			else if (this._vars.transforms) {
+				// Check if vertical and if not, translate on X
 				if (!isVertical){
 					$overlay.css(prefix, 'translateX(-'+percent+'%)');
 					$image.css(prefix, 'translateX('+percent+'%)');
@@ -340,12 +375,25 @@
 			}
 
 			// Call the callbacks, if any
-			if ( this._isFunction(options.onScrub) && !isStart && isInputActive ){
-				options.onScrub.call(this);
+			if ( this._isFunction(options.onScrub) && !isStartingNumber && isInputActive ){
+				options.onScrub.call(this, -(percent-100));
 			}
-			else if ( this._isFunction(options.onComplete) && !isStart && !isInputActive ){
-				options.onComplete.call(this);
+			else if ( this._isFunction(options.onComplete) && !isStartingNumber && !isInputActive ){
+				options.onComplete.call(this, -(percent-100));
 			}
+		},
+
+		/**
+		 * _setPercent (PRIVATE)
+		 *
+		 * Remebers percents so you don't have to!
+		 * 
+		 * @param {object} el      jQuery object
+		 * @param {number} percent Percent to set our data to.
+		 */
+		_setPercent: function(el, percent){
+			this.percent = percent;
+			el.data('plugin_Scrubs.percent', percent);
 		},
 
 		/**
@@ -357,15 +405,21 @@
 		_transToggle: function(event){
 			var
 				$this = $(this),
-				eventType = event.type;
+				eventType = event.type,
+				options = event.data.options;
 
 			if (eventType === 'mousedown' || eventType === 'touchstart'){
-				$this.attr('data-transition', false);
-				$this.data('plugin_Scrubs.isInputActive', true);
+				$this.attr('data-transition', false); // Change our transition state for CSS.
+				$this.data('plugin_Scrubs.isInputActive', true); // Change our flag for the _scrubTo function.
+
+				// Call the onStart callback, if any
+				if ( Plugin.prototype._isFunction(options.onStart) ){
+					options.onStart.call(this, this.percent);
+				}
 			}
 			else if (eventType === 'mouseup' || eventType === 'touchend'){
-				$this.attr('data-transition', true);
-				$this.data('plugin_Scrubs.isInputActive', false);
+				$this.attr('data-transition', true); // Change our transition state for CSS.
+				$this.data('plugin_Scrubs.isInputActive', false); // Change our flag for the _scrubTo function.
 			}
 		},
 
@@ -394,6 +448,20 @@
 		 */
 		beginning: function(){
 			this._scrubTo(this.element, this.options, 0, false);
+		},
+
+		/**
+		 * scrubTo (PUBLIC)
+		 *
+		 * Programically set the scrubber to a certain percentage and whether it should 'stick' when completed.
+		 * 
+		 * @param  {Number} 	number 	User should input the number of percent they want to scrub to
+		 * @param  {Boolean} 	sticky 	Specifies if this particular scrub should 'stick' or snap. False or undefined to snap.
+		 */
+		scrubTo: function(number, sticky){
+			if ( !isNaN(number) ){
+				this._scrubTo(this.element, this.options, number, false, sticky);
+			}
 		}
 
 	});

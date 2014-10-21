@@ -29,14 +29,35 @@ Tested on:
 This is a list of possible improvements or features to include in future versions.
 - ~~Vertical scrubbing~~
 - Multiple image scrubbing (more than 2)
-- More modular controls
+- ~~More modular controls~~
 - ~~Callbacks for advanced functions~~
-- Additional public methods (scroll, destory, ~~start~~, ~~end~~)
+- Additional public methods (~~scroll~~, destory, ~~start~~, ~~end~~)
 - Clean up code
 - ~~Remove modernizr dependency~~
 
 
 #### Version History ####
+
+##### 0.3 #####
+
+Added lots of extra functionality to the code.
+- New "scrollTo" method.
+- New options
+-- width | Let's people specify a width to use with the scrubber. Defaults to a 'responsive' max-width if none is specified.
+-- controls | Option to build out controls or not. Useful if someone wants to rock their own.
+-- input | Let's people turn off any manual input to the scrubber. Should be useful for people to make their own controls.
+-- sticky | Causes the scrubber to stay 'stuck' at the point where the input stopped.
+-- onStart | For callback functions when the user starts scrubbing.
+
+All callbacks now get percent data as part of their arguments. Example:
+```JAVASCRIPT
+onComplete: function(percent){
+	console.log(percent); // Outputs scrubber percent number	
+}
+```
+
+Also renamed a few functions and reorganized a little bit internally, as well as slimmed down the SVG icons in the controls. 
+
 
 ##### 0.2 #####
 
