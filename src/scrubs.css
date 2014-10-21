@@ -3,6 +3,7 @@
   max-width: 80%;
   margin: 0 auto;
   display: block;
+  overflow: hidden;
 }
 
 .scrubs-scrubber .scrubs-images {
@@ -52,7 +53,7 @@
   display: block;
   position: absolute;
   top: 0;
-  right: 0;
+  right: -2px;
   -webkit-box-shadow: 0 0 0.25em rgba(0, 0, 0, 0.2);
   box-shadow: 0 0 0.25em rgba(0, 0, 0, 0.2);
 }
@@ -60,7 +61,8 @@
 .scrubs-scrubber .scrubs-controls-handle {
   position: absolute;
   top: 50%;
-  right: 2px;
+  right: 0;
+  margin-right: -2px;
   height: 2.5em;
   width: 2.5em;
   margin-top: -1.25em;
@@ -102,6 +104,8 @@
   top: 100%;
   right: auto;
   width: 100%;
+  margin-top: -2px;
+  margin-right: auto;
 }
 .scrubs-scrubber.scrubs-vertical .scrubs-controls-handle {
   right: 50%;

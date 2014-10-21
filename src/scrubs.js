@@ -15,7 +15,12 @@
 	// Create the defaults once
 	var pluginName = "Scrubs",
 		defaults = {
-			vertical: false
+			vertical: false,
+			startAt: 50,
+			onInit: function(){},
+			onBegin: function(){},
+			onScrub: function(){},
+			onComplete: function(){},
 		};
 
 	// The actual plugin constructor
@@ -63,6 +68,12 @@
 
 			// Reset
 			this.reset();
+
+			// Call the init callback, if any
+			if ( this._isFunction(this.options.onInit) ) {
+				this.options.onInit.call(this);
+			}
+
 		},
 
 		/**
@@ -74,7 +85,6 @@
 			var
 				$this = $(el),
 				options = this.options;
-			console.log(options);
 
 			$this.on('mousedown mouseup touchstart touchend', {options: options}, this._transToggle);
 			$this.on('mousedown mouseup touchstart touchend touchcancel', {options: options}, this._changeBinding);
@@ -147,14 +157,14 @@
 
 			event.preventDefault();
 
-
+			// Check if we're vertical. Send the appropriate calculation.
 			if (options.vertical){
 				$this.data('plugin_Scrubs.percent', percentY);
-				Plugin.prototype._scrubTo($this[0], percentY);
+				Plugin.prototype._scrubTo($this[0], options, percentY);
 			}
 			else {
 				$this.data('plugin_Scrubs.percent', percentX);
-				Plugin.prototype._scrubTo($this[0], percentX);
+				Plugin.prototype._scrubTo($this[0], options, percentX);
 			}
 		},
 
@@ -166,15 +176,16 @@
 		_changeBinding: function(event){
 			var
 				$this = $(this),
-				eventType = event.type;
+				eventType = event.type,
+				options = event.data.options;
 
 			if (eventType === 'mousedown' || eventType === 'touchstart'){
-				$this.on('mousemove touchmove', Plugin.prototype._calcPercent);
-				$this.one('mouseleave', Plugin.prototype._changeBinding);
+				$this.on('mousemove touchmove', {options: options}, Plugin.prototype._calcPercent);
+				$this.one('mouseleave', {options: options}, Plugin.prototype._changeBinding);
 			}
 			else if (eventType === 'mouseup' || eventType === 'touchend' || eventType === 'touchcancel') {
 				$this.off('mousemove touchmove', Plugin.prototype._calcPercent);
-				Plugin.prototype._scrubTo($this[0]);
+				Plugin.prototype._scrubTo($this[0], options);
 			}
 		},
 		/**
@@ -250,15 +261,27 @@
 		},
 
 		/**
+		 * _isFunction
+		 *
+		 * Check to see if the object passed is a function.
+		 * @param  {object}  possibleFunction The object to test
+		 * @return {Boolean}                  
+		 */
+		_isFunction: function(possibleFunction){
+			return (typeof(possibleFunction) === typeof(Function));
+		},
+
+		/**
 		 * _scrubTo (PRIVATE)
 		 *
 		 * Our workhorse function. Sets the scrubber to various percents of value and moves the elements accordingly.
 		 * 
-		 * @param  {element}  el
-		 * @param  {number}  scrollPercent Percent we will scroll to from 0-100.
-		 * @param  {Boolean} isStartReset  Used as a flag for the intial startup and reset functions
+		 * @param  {element}  	el 				Element that we're working with
+		 * @param  {object} 	options			Passing options object from / to functions
+		 * @param  {number}  	scrollPercent 	Percent we will scroll to from 0-100.
+		 * @param  {Boolean} 	isStartReset  	Used as a flag for the intial startup and reset functions
 		 */
-		_scrubTo: function(el, scrollPercent, isStartReset){
+		_scrubTo: function(el, options, scrollPercent, isStartReset){
 			var
 				$this = $(el),
 				$overlay = $this.find('.scrubs-overlay'),
@@ -268,12 +291,12 @@
 				percent = (100 - scrollPercent) || (100 - $this.data('plugin_Scrubs.percent')),
 				isStart = isStartReset || false,
 				prefix = this._vars.prefix,
-				isVertical = ( this.options.vertical );
+				isVertical = ( options.vertical );
 
 			// We've stopped scrubbing.
 			if (!isInputActive){
 				if (isStart === true){
-					percent = 50;
+					percent = -(options.startAt-100);
 				}
 				else if (percent > 50){
 					percent = 100;
@@ -315,6 +338,14 @@
 					$controls.css(prefix, 'translateY(-'+percent+'%)');
 				}
 			}
+
+			// Call the callbacks, if any
+			if ( this._isFunction(options.onScrub) && !isStart && isInputActive ){
+				options.onScrub.call(this);
+			}
+			else if ( this._isFunction(options.onComplete) && !isStart && !isInputActive ){
+				options.onComplete.call(this);
+			}
 		},
 
 		/**
@@ -339,13 +370,32 @@
 		},
 
 		/**
-		 * Reset (PUBLIC)
+		 * reset (PUBLIC)
 		 * 
-		 * Sets the scrubber back to the "start" at 50.
+		 * Sets the scrubber back to the "start" at the "startAt" option (default 50).
 		 */
 		reset: function(){
-			this._scrubTo(this.element, 50, true);
+			this._scrubTo(this.element, this.options, this.options.startAt, true);
+		},
+
+		/**
+		 * end (PUBLIC)
+		 * 
+		 * Sets the scrubber to 100.
+		 */
+		end: function(){
+			this._scrubTo(this.element, this.options, 100, false);
+		},
+
+		/**
+		 * beginning (PUBLIC)
+		 * 
+		 * Sets the scrubber to 0.
+		 */
+		beginning: function(){
+			this._scrubTo(this.element, this.options, 0, false);
 		}
+
 	});
 
 	// A really lightweight plugin wrapper around the constructor,

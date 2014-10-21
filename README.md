@@ -10,7 +10,6 @@ Grab the Scrubs CSS and JS files and put them in your head and after you load jQ
 
 ```HTML
 <link rel="stylesheet" type="text/css" href="scrubs.css" />
-<script src="modernizr.js"></script>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 <script src="scrubs.js"></script>
 ```
@@ -28,16 +27,28 @@ Tested on:
 
 ### Roadmap ###
 This is a list of possible improvements or features to include in future versions.
-- Vertical scrubbing
+- ~~Vertical scrubbing~~
 - Multiple image scrubbing (more than 2)
 - More modular controls
-- Callbacks for advanced functions
-- Additional public methods (scroll, destory, start, end)
+- ~~Callbacks for advanced functions~~
+- Additional public methods (scroll, destory, ~~start~~, ~~end~~)
 - Clean up code
-- Remove modernizr dependency
+- ~~Remove modernizr dependency~~
 
 
 #### Version History ####
+
+##### 0.2 #####
+
+Did some things from the roadmap, including:
+- Removed Modernizr dependency
+- Added additional public methods (end, beginning)
+- Added callbacks (onInit, onScrub, onComplete)
+- Added vertical scrubbing
+
+Also:
+- Cleaned up / fixed a style error
+- Fixed a multiple instances error
 
 ##### 0.1 #####
 
