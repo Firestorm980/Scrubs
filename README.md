@@ -1,7 +1,7 @@
 Scrubs
 ======
 
-Creates a before and after scrubber for two images. Currently dependent on Modernizr and jQuery.
+Creates a before and after scrubber for two images. Currently dependent on jQuery.
 
 
 ### Installation ###
