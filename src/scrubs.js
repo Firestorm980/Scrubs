@@ -2,7 +2,7 @@
  * jQuery Scrubs Plugin
  * @author: Jon Christensen (Firestorm980)
  * @github: https://github.com/Firestorm980/Scrubs
- * @version: 0.3
+ * @version: 0.3.1
  *
  * Licensed under the MIT License.
  */
@@ -314,8 +314,9 @@
 				isStartingNumber = isStartingNumberBoolean || false,
 				isSticky = isStickyBoolean || false,
 				isVertical = ( options.vertical ),
+				
+				percent = ( !isNaN(scrollPercent) ) ? (100 - scrollPercent) : (100 - $this.data('plugin_Scrubs.percent')),
 
-				percent = (100 - scrollPercent) || (100 - $this.data('plugin_Scrubs.percent')),
 				prefix = this._vars.prefix,
 				startingNumber = ( options.startAt > 100 || options.startAt < 0 ) ? 50 : options.startAt;
 
@@ -442,11 +443,11 @@
 		},
 
 		/**
-		 * beginning (PUBLIC)
+		 * start (PUBLIC)
 		 * 
 		 * Sets the scrubber to 0.
 		 */
-		beginning: function(){
+		start: function(){
 			this._scrubTo(this.element, this.options, 0, false);
 		},
 
@@ -458,7 +459,7 @@
 		 * @param  {Number} 	number 	User should input the number of percent they want to scrub to
 		 * @param  {Boolean} 	sticky 	Specifies if this particular scrub should 'stick' or snap. False or undefined to snap.
 		 */
-		scrubTo: function(number, sticky){
+		scrub: function(number, sticky){
 			if ( !isNaN(number) ){
 				this._scrubTo(this.element, this.options, number, false, sticky);
 			}
