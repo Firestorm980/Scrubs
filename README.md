@@ -38,6 +38,11 @@ This is a list of possible improvements or features to include in future version
 
 #### Version History ####
 
+##### 0.3.1 #####
+
+- Fixed a minor issue with numbers being passed to the scrubbing function.
+- Renamed public function 'beginning' to 'start'
+
 ##### 0.3 #####
 
 Added lots of extra functionality to the code.
