@@ -26,11 +26,11 @@ Transitions / animations are all CSS based, so refer to [caniuse.com](http://can
 
 - Windows (IE8+, Firefox, Chrome)
 - OSX (Chrome, Safari, Firefox)
-- iOS* (Safari)
+- iOS (Safari)
 - Android 4 (Stock browser, Chrome, Firefox)
-- Windows Phone* (IE)
+- Windows Phone (IE)
 
-* Tested in simulator
+Note: Both iOS and Windows Phone were tested in simulators.
 
 ### Roadmap ###
 This is a list of possible improvements or features to include in future versions.
