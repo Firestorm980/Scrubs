@@ -19,9 +19,9 @@ $(document).ready(function(){
 
 	$('#vscrubber').Scrubs({
 		vertical: true,
-		sticky: true,
-		controls: false,
-		input: false,
+		//sticky: true,
+		//controls: false,
+		//input: false,
 		onComplete: function(percent){
 			console.log('Scrub complete '+ percent);
 		},

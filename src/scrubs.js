@@ -244,8 +244,12 @@
 
 			// Check vertical option. Add appropriate styling.
 			// Style changes direction of controls.
-			if (this.options.vertical) {
+			if (this.options.vertical){
 				$this.addClass('scrubs-vertical');
+			}
+
+			if (!this._vars.transforms){
+				$this.addClass('scrubs-fallback');
 			}
 
 			// Check responsive option. Add appropriate styling.
@@ -372,6 +376,19 @@
 					$overlay.css(prefix, 'translateY(-'+percent+'%)');
 					$image.css(prefix, 'translateY('+percent+'%)');
 					$controls.css(prefix, 'translateY(-'+percent+'%)');
+				}
+			}
+			// No transforms? Lame.
+			else {
+				if (!isVertical){
+					$overlay.css({ right: percent+'%' });
+					$image.css({ left: percent+'%' });
+					$controls.css({ right: percent+'%' });
+				}
+				else {
+					$overlay.css({ bottom: percent+'%' });
+					$image.css({ top: percent+'%' });
+					$controls.css({ bottom: percent+'%' });
 				}
 			}
 

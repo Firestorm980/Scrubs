@@ -16,27 +16,34 @@ Grab the Scrubs CSS and JS files and put them in your head and after you load jQ
 
 ### Compatibility ###
 
-Currently, any modern browser that supports CSS transforms. Go to [caniuse.com](http://caniuse.com/#search=transforms) to learn more.
+Currently, any modern browser that supports CSS transforms *should* work. Go to [caniuse.com](http://caniuse.com/#feat=transforms2d) to learn more. The plugin will automatically use 2D/3D transforms if available, preferring 3D (for hardware acceleration).
 
-Tested on:
+In addition, there is also a fallback for older browsers where transforms are not detected, where it will use CSS position properties instead (top, bottom, left, right). 
 
-- Chrome (OSX, Android, Stock)
-- Firefox (OSX, Android)
-- Safari (iOS, OSX)
+Transitions / animations are all CSS based, so refer to [caniuse.com](http://caniuse.com/#feat=css-transitions) for support.
 
+##### Tested On #####
+
+- Windows (IE8+, Firefox, Chrome)
+- OSX (Chrome, Safari, Firefox)
+- iOS* (Safari)
+- Android 4 (Stock browser, Chrome, Firefox)
+- Windows Phone* (IE)
+
+* Tested in simulator
 
 ### Roadmap ###
 This is a list of possible improvements or features to include in future versions.
-- ~~Vertical scrubbing~~
 - Multiple image scrubbing (more than 2)
-- ~~More modular controls~~
-- ~~Callbacks for advanced functions~~
-- Additional public methods (~~scroll~~, destory, ~~start~~, ~~end~~)
+- Additional public methods
 - Clean up code
-- ~~Remove modernizr dependency~~
 
 
 #### Version History ####
+
+##### 0.4 #####
+
+Added deeper browser support. Scrubber now works with browsers that do not support CSS transforms, specifically IE8.
 
 ##### 0.3.1 #####
 
