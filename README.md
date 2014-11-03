@@ -41,6 +41,10 @@ This is a list of possible improvements or features to include in future version
 
 #### Version History ####
 
+##### 0.4.1 #####
+
+Removed 'width' option as well as max-width styling in constructor. May revisit in the future.
+
 ##### 0.4 #####
 
 Added deeper browser support. Scrubber now works with browsers that do not support CSS transforms, specifically IE8.

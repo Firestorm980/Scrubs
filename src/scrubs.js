@@ -2,7 +2,7 @@
  * jQuery Scrubs Plugin
  * @author: Jon Christensen (Firestorm980)
  * @github: https://github.com/Firestorm980/Scrubs
- * @version: 0.3.1
+ * @version: 0.4.1
  *
  * Licensed under the MIT License.
  */
@@ -21,7 +21,6 @@
 			startAt: 50, // Number to start the scrubber on. Will also "reset" to this number.	
 			sticky: false, // Keeps the scrubber at a position instead of snapping to an end
 			vertical: false, // Sets whether the scrubber should work in Y axis
-			width: 'auto', // Sets the maximum width of the scrubber. If left to 'auto', will be responsive as big as the image. Number can't be bigger than the images being scrubbed.
 
 			// Callbacks
 			onInit: function(){}, // Callback when the scrubber is ready
@@ -235,9 +234,7 @@
 				$this = $(el),
 				$beforeImage = $(beforeImage),
 				$afterImage = $(afterImage),
-				$imagePlaceholder = $beforeImage.clone(),
-				maxWidth = $beforeImage.width(),
-				optWidth = this.options.width;
+				$imagePlaceholder = $beforeImage.clone();
 
 			// Add scrubs class so that we can add our style hooks
 			$this.addClass('scrubs-scrubber');
@@ -248,16 +245,9 @@
 				$this.addClass('scrubs-vertical');
 			}
 
+			// Go to fallback if transforms unsupported.
 			if (!this._vars.transforms){
 				$this.addClass('scrubs-fallback');
-			}
-
-			// Check responsive option. Add appropriate styling.
-			if (optWidth !== 'auto' && !isNaN(optWidth) && optWidth <= maxWidth){
-				$this.css({ width: optWidth });
-			}
-			else {
-				$this.css({ maxWidth: maxWidth });
 			}
 
 			// Add our data attributes
