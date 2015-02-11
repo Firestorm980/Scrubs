@@ -10,7 +10,7 @@
 .scrubs-scrubber .scrubs-images {
   position: relative;
   overflow: hidden;
-  display: block;
+  display: inline-block;
   pointer-events: none;
   -webkit-user-select: none;
   -moz-user-select: none;
