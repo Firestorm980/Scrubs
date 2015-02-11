@@ -1,6 +1,6 @@
 .scrubs-scrubber {
   position: relative;
-  display: block;
+  display: inline-block;
   overflow: hidden;
 }
 .scrubs-scrubber img {
@@ -10,7 +10,7 @@
 .scrubs-scrubber .scrubs-images {
   position: relative;
   overflow: hidden;
-  display: inline-block;
+  display: block;
   pointer-events: none;
   -webkit-user-select: none;
   -moz-user-select: none;
