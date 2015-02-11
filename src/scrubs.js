@@ -234,10 +234,11 @@
 				$this = $(el),
 				$beforeImage = $(beforeImage),
 				$afterImage = $(afterImage),
-				$imagePlaceholder = $beforeImage.clone();
+				$imagePlaceholder = $beforeImage.clone(),
+				maxWidth = $beforeImage.width();
 
 			// Add scrubs class so that we can add our style hooks
-			$this.addClass('scrubs-scrubber');
+			$this.addClass('scrubs-scrubber').css({ maxWidth: maxWidth });
 
 			// Check vertical option. Add appropriate styling.
 			// Style changes direction of controls.
