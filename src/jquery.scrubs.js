@@ -371,7 +371,7 @@
                 percent = plugin.$element.data('plugin_' + pluginName + '.percent'); // Grab the current percent so we can calculate the end percent
 
             // Do do this if we didn't move that far
-            if ( momentum.velocity > 10 || momentum.velocity < -10 ){
+            if ( momentum.velocity > 5 || momentum.velocity < -5 ){
                 momentum.amplitude = plugin.options.friction * momentum.velocity; // Get our amplitude and set it.
                 momentum.timestamp = Date.now(); // Track when we let go
                 momentum.percent = Math.round( percent + momentum.amplitude); // Our end percent
@@ -385,14 +385,15 @@
                 momentum = plugin.momentum,
                 deltaTime = Date.now() - momentum.timestamp,
                 deltaPercent = -momentum.amplitude * Math.exp( -deltaTime / 325 ),
-                isInputActive = plugin.$element.data('plugin_' + pluginName + '.isInputActive');
+                isInputActive = plugin.$element.data('plugin_' + pluginName + '.isInputActive'),
+                endPercent = momentum.percent + deltaPercent;
 
-            if ( !isInputActive ){
+            if ( !isInputActive &&  endPercent < 100 && endPercent > 0 ){
                 // Only move if the amplitude is bigger than 0 and if the delta warrants the change
                 if ( momentum.amplitude && ( deltaPercent > 1 || deltaPercent < -1 ) ){
                     // Go to the next frame
                     // The percentage will eventually get closer to the target percent
-                    plugin._scrubTo.call(plugin, ( momentum.percent + deltaPercent ), false, true );
+                    plugin._scrubTo.call(plugin, endPercent, false, true );
 
                     // Wait for the next available frame.
                     if ( !scheduledAnimationFrame ){
@@ -412,40 +413,25 @@
                 }
             }
             else {
+                var
+                    percentX = ( endPercent > 100 ) ? 100 : 0,
+                    percentY = ( endPercent > 100 ) ? 100 : 0,
+                    time = Date.now();
+
+                momentum.velocity = 0;
+                momentum.amplitude = 0;
+                momentum.percent = 0;
+                momentum.delta = { x: 0, y: 0, time: 0 };
+                if ( plugin.options.vertical ){ 
+                    momentum.last = { x: 50, y: percentY, time: time };
+                }
+                else { 
+                    momentum.last = { x: percentX, y: 50, time: time };
+                }
+                cancelRequestAnimFrame( momentum.frame );
+
                 return;
             }
-        },
-
-        _momentumReset: function(event){
-            var
-                plugin = this,
-                options = plugin.options,
-                momentum = plugin.momentum,
-                $el = $(plugin.element),
-                eventType = event.type,
-                inputX = ( eventType === 'mousedown' || eventType === 'mousemove' ) ? event.pageX : event.originalEvent.touches[0].pageX,
-                inputY = ( eventType === 'mousedown' || eventType === 'mousemove' ) ? event.pageY : event.originalEvent.touches[0].pageY,
-                offsetX = $el.offset().left,
-                offsetY = $el.offset().top,
-                totalWidth = $el.width(),
-                totalHeight = $el.height(),
-                positionX = inputX - offsetX,
-                positionY = inputY - offsetY,
-                percentX = parseInt( (positionX/totalWidth)*100 ),
-                percentY = parseInt( (positionY/totalHeight)*100 ),
-
-                // Momentum calcuations and variables
-                current = { x: percentX, y: percentY, time: Date.now() },
-                last = current,
-                delta = { x: 0, y: 0, time: 0 };
-            
-            console.log( 'reset' );
-            // Cache our delta and percents
-            momentum.delta = delta;
-            momentum.current = current;
-            momentum.last = last;
-
-            cancelRequestAnimFrame( momentum.frame );
         },
 
         /**
@@ -464,7 +450,7 @@
                 $beforeImage = $(beforeImage),
                 $afterImage = $(afterImage),
                 $imagePlaceholder = $beforeImage.clone(),
-                maxWidth = $beforeImage.width();
+                maxWidth = $beforeImage[0].naturalWidth;
 
             // Add scrubs class so that we can add our style hooks
             $element.addClass('scrubs-scrubber').css({ maxWidth: maxWidth });
@@ -671,10 +657,6 @@
                 // Call the onStart callback, if any
                 if ( plugin._isFunction(options.onStart) ){
                     options.onStart.call(plugin, percent );
-                }
-
-                if ( options.momentum ){
-                    plugin._momentumReset.call(plugin, event);
                 }
             }
             else if (eventType === 'mouseup' || eventType === 'touchend'){
